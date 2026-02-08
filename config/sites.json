@@ -1,0 +1,46 @@
+{
+  "sites": [
+    {
+      "name": "FSBO.com",
+      "scraper": "fsbo_com",
+      "enabled": true,
+      "description": "The largest national FSBO marketplace",
+      "min_delay": 0.5,
+      "max_delay": 1.0,
+      "max_listings": 50,
+      "scrape_url": ["https://fsbo.com/", "https://fsbo.com/listings/search/results/"],
+      "notes": "Check robots.txt before large-scale scraping"
+    }
+    
+  ],
+  "thanks_io": {
+    "enabled": false,
+    "api_key": "YOUR_THANKS_IO_API_KEY",
+    "campaign_id": "YOUR_CAMPAIGN_ID",
+    "description": "Thanks.io postcard campaign integration"
+  },
+  "export": {
+    "format": "csv",
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "include_fields": [
+      "id",
+      "street",
+      "city",
+      "state",
+      "zip_code",
+      "listing_url",
+      "source_website",
+      "scraped_at"
+    ]
+  },
+  "scraping": {
+    "min_request_delay": 1.0,
+    "max_request_delay": 5.0,
+    "request_timeout": 10,
+    "max_retries": 3,
+    "retry_backoff_factor": 2.0,
+    "max_requests_per_minute": 60,
+    "respect_robots_txt": true
+  }
+}
