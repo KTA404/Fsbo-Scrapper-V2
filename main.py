@@ -17,7 +17,7 @@ from config.settings import (
 )
 from config import SiteConfig
 from storage import FSBODatabase
-from scrapers import FSBOComScraper, ByOwnerComScraper, RealtyLessComScraper, BeycomeScraper, ZillowFSBOScraper, CraigslistHousingScraper
+from scrapers import FSBOComScraper, ByOwnerComScraper, RealtyLessComScraper, BeycomeScraper, ZillowFSBOScraper, CraigslistHousingScraper, FSBOLandingPageScraper
 
 # Setup logging
 logger = setup_logging(log_level=LOG_LEVEL, log_file=LOG_FILE)
@@ -37,6 +37,7 @@ class ScraperContext:
             'beycome_com': BeycomeScraper,
             'zillow_fsbo': ZillowFSBOScraper,
             'craigslist_housing': CraigslistHousingScraper,
+            'fsbo_landing': FSBOLandingPageScraper,
         }
 
 
@@ -53,7 +54,7 @@ def cli(ctx):
 
 
 @cli.command()
-@click.option('--site', type=str, default=None, help='Scrape only a specific site (fsbo_com, zillow_fsbo, craigslist_housing)')
+@click.option('--site', type=str, default=None, help='Scrape only a specific site (fsbo_com, zillow_fsbo, craigslist_housing, fsbo_landing)')
 @click.option('--output', type=str, default=None, help='Output CSV file path')
 @click.pass_context
 def scrape(ctx, site: Optional[str], output: Optional[str]):
@@ -85,7 +86,7 @@ def scrape(ctx, site: Optional[str], output: Optional[str]):
         try:
             scraper_class = context.scrapers[scraper_name]
             
-            # Pass max_listings and scrape_url parameters if available in config (for FSBO scraper)
+            # Pass config parameters for scrapers that support them
             if scraper_name == 'fsbo_com':
                 kwargs = {}
                 if 'max_listings' in site_config:
@@ -94,6 +95,24 @@ def scrape(ctx, site: Optional[str], output: Optional[str]):
                 if 'scrape_url' in site_config:
                     kwargs['scrape_url'] = site_config['scrape_url']
                     click.echo(f"   Scrape URL: {site_config['scrape_url']}")
+                scraper = scraper_class(**kwargs) if kwargs else scraper_class()
+            elif scraper_name == 'fsbo_landing':
+                kwargs = {}
+                if 'max_listings' in site_config:
+                    kwargs['max_listings'] = site_config['max_listings']
+                    click.echo(f"   Max listings: {site_config['max_listings']}")
+                if 'landing_urls' in site_config:
+                    kwargs['landing_urls'] = site_config['landing_urls']
+                    click.echo(f"   Landing URLs: {site_config['landing_urls']}")
+                if 'landing_search_queries' in site_config:
+                    kwargs['search_queries'] = site_config['landing_search_queries']
+                    click.echo(f"   Search queries: {site_config['landing_search_queries']}")
+                if 'max_search_results' in site_config:
+                    kwargs['max_search_results'] = site_config['max_search_results']
+                    click.echo(f"   Max search results: {site_config['max_search_results']}")
+                if 'landing_allowlist' in site_config:
+                    kwargs['allowlist_domains'] = site_config['landing_allowlist']
+                    click.echo(f"   Allowlist: {site_config['landing_allowlist']}")
                 scraper = scraper_class(**kwargs) if kwargs else scraper_class()
             else:
                 scraper = scraper_class()

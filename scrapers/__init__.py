@@ -9,6 +9,7 @@ from .realtyless_com import RealtyLessComScraper
 from .beycome_com import BeycomeScraper
 from .zillow_fsbo import ZillowFSBOScraper
 from .craigslist_housing import CraigslistHousingScraper
+from .fsbo_landing import FSBOLandingPageScraper
 
 __all__ = [
     'BaseScraper',
@@ -19,4 +20,5 @@ __all__ = [
     'BeycomeScraper',
     'ZillowFSBOScraper',
     'CraigslistHousingScraper',
+    'FSBOLandingPageScraper',
 ]

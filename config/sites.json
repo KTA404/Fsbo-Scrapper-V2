@@ -10,8 +10,29 @@
       "max_listings": 50,
       "scrape_url": ["https://fsbo.com/", "https://fsbo.com/listings/search/results/"],
       "notes": "Check robots.txt before large-scale scraping"
+    },
+    {
+      "name": "FSBO Landing Pages",
+      "scraper": "fsbo_landing",
+      "enabled": true,
+      "description": "Generic FSBO landing pages across the web",
+      "min_delay": 1.0,
+      "max_delay": 3.0,
+      "max_listings": 50,
+      "landing_urls": [],
+      "landing_search_queries": [
+        "FSBO listings for sale by owner",
+        "FSBO homes for sale by owner listings"
+      ],
+      "max_search_results": 20,
+      "landing_allowlist": [
+        "fsbo.com",
+        "forsalebyowner.com",
+        "byowner.com",
+        "buyowner.com"
+      ],
+      "notes": "Uses search to discover landing pages when landing_urls is empty"
     }
-    
   ],
   "thanks_io": {
     "enabled": false,
