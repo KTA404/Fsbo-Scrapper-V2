@@ -29,7 +29,6 @@ A Python-based web scraping system that discovers and extracts For Sale By Owner
 
 ```bash
 # Clone the repository
-cd /home/kait/Fsbo-Scrapper-V2
 
 # Install dependencies
 pip install -r requirements.txt
