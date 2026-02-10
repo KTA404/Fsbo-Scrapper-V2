@@ -29,6 +29,7 @@ A Python-based web scraping system that discovers and extracts For Sale By Owner
 
 ```bash
 # Clone the repository
+git clone git@github.com:KTA404/Fsbo-Scrapper-V2.git
 
 # Install dependencies
 pip install -r requirements.txt
