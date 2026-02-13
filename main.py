@@ -95,6 +95,9 @@ def scrape(ctx, site: Optional[str], output: Optional[str]):
                 if 'scrape_url' in site_config:
                     kwargs['scrape_url'] = site_config['scrape_url']
                     click.echo(f"   Scrape URL: {site_config['scrape_url']}")
+                if 'allowed_states' in site_config:
+                    kwargs['allowed_states'] = site_config['allowed_states']
+                    click.echo(f"   Allowed states: {site_config['allowed_states']}")
                 scraper = scraper_class(**kwargs) if kwargs else scraper_class()
             elif scraper_name == 'fsbo_landing':
                 kwargs = {}
@@ -113,6 +116,12 @@ def scrape(ctx, site: Optional[str], output: Optional[str]):
                 if 'landing_allowlist' in site_config:
                     kwargs['allowlist_domains'] = site_config['landing_allowlist']
                     click.echo(f"   Allowlist: {site_config['landing_allowlist']}")
+                if 'landing_allowed_states' in site_config:
+                    kwargs['allowed_states'] = site_config['landing_allowed_states']
+                    click.echo(f"   Allowed states: {site_config['landing_allowed_states']}")
+                if 'landing_blacklist' in site_config:
+                    kwargs['blacklist_domains'] = site_config['landing_blacklist']
+                    click.echo(f"   Blacklist: {site_config['landing_blacklist']}")
                 scraper = scraper_class(**kwargs) if kwargs else scraper_class()
             else:
                 scraper = scraper_class()

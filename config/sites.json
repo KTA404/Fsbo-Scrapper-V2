@@ -7,9 +7,10 @@
       "description": "The largest national FSBO marketplace",
       "min_delay": 0.5,
       "max_delay": 1.0,
-      "max_listings": 50,
-      "scrape_url": ["https://fsbo.com/", "https://fsbo.com/listings/search/results/"],
-      "notes": "Check robots.txt before large-scale scraping"
+      "max_listings": 200,
+      "scrape_url": ["https://fsbo.com/", "https://fsbo.com/listings/search/results/?state=CO"],
+      "allowed_states": ["CO"],
+      "notes": "Colorado-only search results; check robots.txt before large-scale scraping"
     },
     {
       "name": "FSBO Landing Pages",
@@ -18,19 +19,16 @@
       "description": "Generic FSBO landing pages across the web",
       "min_delay": 1.0,
       "max_delay": 3.0,
-      "max_listings": 50,
+      "max_listings": 200,
       "landing_urls": [],
       "landing_search_queries": [
-        "FSBO listings for sale by owner",
-        "FSBO homes for sale by owner listings"
+        "FSBO listings for sale by owner Colorado",
+        "FSBO homes for sale by owner Colorado"
       ],
-      "max_search_results": 20,
-      "landing_allowlist": [
-        "fsbo.com",
-        "forsalebyowner.com",
-        "byowner.com",
-        "buyowner.com"
-      ],
+      "max_search_results": 200,
+      "landing_allowlist": [],
+      "landing_blacklist": ["zillow.com", "trulia.com", "realtystore.com"],
+      "landing_allowed_states": ["CO"],
       "notes": "Uses search to discover landing pages when landing_urls is empty"
     }
   ],

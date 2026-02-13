@@ -22,7 +22,7 @@ class FSBOComScraper(BaseScraper):
     Always check robots.txt and terms before scraping.
     """
 
-    def __init__(self, max_listings: int = 10, scrape_url = None):
+    def __init__(self, max_listings: int = 10, scrape_url = None, allowed_states: List[str] = None):
         """
         Initialize FSBO.com scraper.
         
@@ -37,6 +37,7 @@ class FSBOComScraper(BaseScraper):
             max_delay=1.0
         )
         self.max_listings = max_listings
+        self.allowed_states = [s.strip().upper() for s in (allowed_states or []) if s.strip()]
         # Handle both single URL string and list of URLs
         if scrape_url is None:
             self.scrape_urls = [self.base_url]
@@ -199,6 +200,13 @@ class FSBOComScraper(BaseScraper):
         listings = []
         soup = BeautifulSoup(content, 'html.parser')
 
+        # Require bed and bath indicators to keep only home listings
+        page_text = soup.get_text(" ", strip=True).lower()
+        has_bed = re.search(r'\b\d+(?:\.\d+)?\s*(bd|bed|beds)\b', page_text)
+        has_bath = re.search(r'\b\d+(?:\.\d+)?\s*(ba|bath|baths)\b', page_text)
+        if not (has_bed and has_bath):
+            return listings
+
         try:
             # Look for the address span which has format: "700 NE 26th Terr #804Miami, FL 33137"
             address_span = soup.find('span', class_='address')
@@ -219,6 +227,9 @@ class FSBOComScraper(BaseScraper):
                     city = match.group(2).strip()
                     state = match.group(3).strip()
                     zip_code = match.group(4).strip()
+
+                    if self.allowed_states and state.upper() not in self.allowed_states:
+                        return listings
                     
                     listing = {
                         'street': street,

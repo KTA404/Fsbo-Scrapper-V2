@@ -28,7 +28,9 @@ class FSBOLandingPageScraper(BaseScraper):
         max_listings: int = 50,
         search_queries: Optional[List[str]] = None,
         max_search_results: int = 20,
-        allowlist_domains: Optional[List[str]] = None
+        allowlist_domains: Optional[List[str]] = None,
+        allowed_states: Optional[List[str]] = None,
+        blacklist_domains: Optional[List[str]] = None
     ):
         """
         Initialize landing page scraper.
@@ -48,6 +50,8 @@ class FSBOLandingPageScraper(BaseScraper):
         self.search_queries = search_queries or []
         self.max_search_results = max_search_results
         self.allowlist_domains = [d.lower().strip() for d in (allowlist_domains or []) if d.strip()]
+        self.allowed_states = [s.strip().upper() for s in (allowed_states or []) if s.strip()]
+        self.blacklist_domains = [d.lower().strip() for d in (blacklist_domains or []) if d.strip()]
 
     def get_listing_urls(self) -> List[str]:
         """
@@ -82,7 +86,11 @@ class FSBOLandingPageScraper(BaseScraper):
                 break
             if not AddressParser.is_likely_address(text):
                 continue
+            if not self._is_plausible_address_text(text):
+                continue
             parsed = AddressParser.parse_address_line(text)
+            if not self._is_allowed_state(parsed):
+                continue
             listing = self._to_listing(parsed, listing_url='')
             if listing and self._add_unique(listings, seen, listing):
                 continue
@@ -154,13 +162,15 @@ class FSBOLandingPageScraper(BaseScraper):
         """
         Check if URL is within allowlist domains (if provided).
         """
-        if not self.allowlist_domains:
-            return True
-
         try:
             host = urlparse(url).netloc.lower()
             if not host:
                 return False
+            if self.blacklist_domains:
+                if any(host == domain or host.endswith(f".{domain}") for domain in self.blacklist_domains):
+                    return False
+            if not self.allowlist_domains:
+                return True
             return any(host == domain or host.endswith(f".{domain}") for domain in self.allowlist_domains)
         except Exception:
             return False
@@ -240,6 +250,38 @@ class FSBOLandingPageScraper(BaseScraper):
             unique.append(c)
         return unique
 
+    @staticmethod
+    def _is_plausible_address_text(text: str) -> bool:
+        """
+        Heuristic filter to drop non-address UI text blocks.
+        """
+        cleaned = re.sub(r'\s+', ' ', text).strip()
+
+        # Too long or too many words usually indicates page chrome
+        if len(cleaned) > 240:
+            return False
+        if len(cleaned.split()) > 28:
+            return False
+
+        # Must have a street number
+        if not re.search(r'\b\d{1,5}\b', cleaned):
+            return False
+
+        # Block common UI/auth text
+        blocked_phrases = [
+            'sign in', 'sign up', 'login', 'continue with', 'get started',
+            'forgot password', 'mortgage', 'payment calculator',
+            'home affordability', 'welcome', 'by clicking', 'privacy',
+            'terms', 'list my property'
+        ]
+        lower = cleaned.lower()
+        if any(p in lower for p in blocked_phrases):
+            return False
+
+        return True
+
+
+
     def _extract_from_json_ld(self, json_ld: Dict, listings: List[Dict], seen: set) -> None:
         """
         Extract addresses from JSON-LD structures.
@@ -303,6 +345,12 @@ class FSBOLandingPageScraper(BaseScraper):
         if not (street and city and state and zip_code):
             return None
 
+        # Reject price-like or incomplete street lines
+        if street.startswith('$'):
+            return None
+        if not re.search(r'\b\d{1,5}\b', street):
+            return None
+
         return {
             'street': street,
             'city': city,
@@ -310,6 +358,15 @@ class FSBOLandingPageScraper(BaseScraper):
             'zip_code': zip_code,
             'listing_url': listing_url
         }
+
+    def _is_allowed_state(self, parsed: Dict[str, str]) -> bool:
+        """
+        Check if parsed state is within allowed states (if provided).
+        """
+        if not self.allowed_states:
+            return True
+        state = (parsed.get('state') or '').strip().upper()
+        return state in self.allowed_states
 
     @staticmethod
     def _add_unique(listings: List[Dict], seen: set, listing: Dict) -> bool:
